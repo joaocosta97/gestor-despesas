@@ -145,7 +145,10 @@ export default function App() {
         <TextInput
           label="Valor (€)"
           value={valor}
-          onChangeText={setValor}
+          onChangeText={(text) => {
+            const valorFiltrado = text.replace(/[^0-9.,]/g, '');
+            setValor(valorFiltrado);
+          }}
           keyboardType="numeric"
           style={styles.input}
           ref={valorInputRef}
