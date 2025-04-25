@@ -149,7 +149,7 @@ export default function App() {
             const valorFiltrado = text.replace(/[^0-9.,]/g, '');
             setValor(valorFiltrado);
           }}
-          keyboardType="numeric"
+          keyboardType="decimal-pad"
           style={styles.input}
           ref={valorInputRef}
           returnKeyType="done"
