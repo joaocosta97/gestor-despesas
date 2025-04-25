@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
-  FlatList,
+  SectionList,
   Modal,
   Pressable,
   Animated,
@@ -36,6 +36,7 @@ type Despesa = {
   nome: string;
   valor: string;
   categoria: string;
+  data: string;
 };
 
 const listaCategorias = [
@@ -70,6 +71,7 @@ export default function App() {
         nome,
         valor,
         categoria,
+        data: new Date().toISOString(),
       };
 
       const novaLista = [...despesas, novaDespesa];
@@ -125,6 +127,33 @@ export default function App() {
   const obterIcon = (categoria: string) => {
     const cat = listaCategorias.find((c) => c.label === categoria);
     return cat?.icon || 'tag';
+  };
+
+  const agruparDespesasPorMes = () => {
+    const agrupadas: { [mesAno: string]: Despesa[] } = {};
+
+    despesas.forEach((despesa) => {
+      const dataObj = new Date(despesa.data);
+      const mesAno = dataObj.toLocaleString('default', { month: 'long', year: 'numeric' });
+
+      if (!agrupadas[mesAno]) {
+        agrupadas[mesAno] = [];
+      }
+      agrupadas[mesAno].push(despesa);
+    });
+
+    return Object.keys(agrupadas)
+      .sort((a, b) => {
+        const [mesA, anoA] = a.split(' ');
+        const [mesB, anoB] = b.split(' ');
+        const dataA = new Date(`${mesA} 1, ${anoA}`);
+        const dataB = new Date(`${mesB} 1, ${anoB}`);
+        return dataB.getTime() - dataA.getTime(); 
+      })
+      .map((mesAno) => ({
+        title: mesAno,
+        data: agrupadas[mesAno],
+      }));
   };
 
   return (
@@ -192,8 +221,9 @@ export default function App() {
           Adicionar
         </Button>
 
-        <FlatList
-          data={despesas}
+
+        <SectionList
+          sections={agruparDespesasPorMes()}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => {
             const categoriaInfo = listaCategorias.find((cat) => cat.label === item.categoria);
@@ -221,6 +251,9 @@ export default function App() {
               </Card>
             );
           }}
+          renderSectionHeader={({ section: { title } }) => (
+            <Text style={styles.separadorMes}>{title.toUpperCase()}</Text>
+          )}
         />
       </View>
     </PaperProvider>
@@ -332,6 +365,15 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 14,
     color: '#5e35b1',
+    textAlign: 'center',
+  },
+
+  separadorMes: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#5e35b1',
+    backgroundColor: '#ede7f6',
+    padding: 8,
     textAlign: 'center',
   },
 });
