@@ -7,6 +7,7 @@ import {
   Pressable,
   Animated,
   TouchableOpacity,
+  Platform,
 } from 'react-native';
 import {
   Provider as PaperProvider,
@@ -18,6 +19,7 @@ import {
 } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const theme = {
   ...DefaultTheme,
@@ -58,6 +60,8 @@ export default function App() {
   const [showDropDown, setShowDropDown] = useState(false);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const valorInputRef = useRef<any>(null);
+  const [data, setData] = useState(new Date().toISOString().split('T')[0]);
+  const [mostrarPicker, setMostrarPicker] = useState(false);
 
   const total = despesas.reduce((soma, despesa) => {
     const valorNumerico = parseFloat(despesa.valor.replace(',', '.'));
@@ -71,7 +75,7 @@ export default function App() {
         nome,
         valor,
         categoria,
-        data: new Date().toISOString(),
+        data: new Date(data).toISOString(),
       };
 
       const novaLista = [...despesas, novaDespesa];
@@ -148,7 +152,7 @@ export default function App() {
         const [mesB, anoB] = b.split(' ');
         const dataA = new Date(`${mesA} 1, ${anoA}`);
         const dataB = new Date(`${mesB} 1, ${anoB}`);
-        return dataB.getTime() - dataA.getTime(); 
+        return dataB.getTime() - dataA.getTime();
       })
       .map((mesAno) => ({
         title: mesAno,
@@ -191,9 +195,43 @@ export default function App() {
           </Text>
         </Pressable>
 
+        {Platform.OS === 'web' ? (
+          <TextInput
+            label="Data"
+            value={data}
+            onChangeText={(text) => setData(text)}
+            style={styles.input}
+            keyboardType="default"
+            right={<TextInput.Icon icon="calendar" />}
+          />
+        ) : (
+          <>
+            <Pressable style={styles.input} onPress={() => setMostrarPicker(true)}>
+              <Text style={styles.dropdownText}>
+                📅 {data}
+              </Text>
+            </Pressable>
+
+            {mostrarPicker && (
+              <DateTimePicker
+                value={new Date(data)}
+                mode="date"
+                display="default"
+                onChange={(event, selectedDate) => {
+                  setMostrarPicker(false);
+                  if (selectedDate) {
+                    const dataFormatada = selectedDate.toISOString().split('T')[0];
+                    setData(dataFormatada);
+                  }
+                }}
+              />
+            )}
+          </>
+        )}
+
         <Modal visible={showDropDown} transparent animationType="none">
           <View style={styles.modalOverlay}>
-            <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}>
+            <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}> 
               <Text style={styles.modalTitle}>Escolhe uma categoria</Text>
               <View style={styles.grid}>
                 {listaCategorias.map((item) => (
