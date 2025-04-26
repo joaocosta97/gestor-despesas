@@ -146,30 +146,31 @@ export default function App() {
   };
 
   const agruparDespesasPorMes = () => {
-    const agrupadas: { [mesAno: string]: Despesa[] } = {};
-
+    const agrupadas: { [chave: string]: Despesa[] } = {};
+  
     despesas.forEach((despesa) => {
       const dataObj = new Date(despesa.data);
-      const mesAno = dataObj.toLocaleString('default', { month: 'long', year: 'numeric' });
-
-      if (!agrupadas[mesAno]) {
-        agrupadas[mesAno] = [];
+      const ano = dataObj.getFullYear();
+      const mes = (dataObj.getMonth() + 1).toString().padStart(2, '0');
+      const chave = `${ano}-${mes}`; // Ex: 2025-04
+  
+      if (!agrupadas[chave]) {
+        agrupadas[chave] = [];
       }
-      agrupadas[mesAno].push(despesa);
+      agrupadas[chave].push(despesa);
     });
-
+  
     return Object.keys(agrupadas)
-      .sort((a, b) => {
-        const [mesA, anoA] = a.split(' ');
-        const [mesB, anoB] = b.split(' ');
-        const dataA = new Date(`${mesA} 1, ${anoA}`);
-        const dataB = new Date(`${mesB} 1, ${anoB}`);
-        return dataB.getTime() - dataA.getTime();
-      })
-      .map((mesAno) => ({
-        title: mesAno,
-        data: agrupadas[mesAno],
-      }));
+      .sort((a, b) => b.localeCompare(a)) // Mais recente primeiro
+      .map((chave) => {
+        const [ano, mes] = chave.split('-');
+        const dataFormatada = new Date(`${ano}-${mes}-01`);
+        const titulo = dataFormatada.toLocaleString('default', { month: 'long', year: 'numeric' });
+        return {
+          title: titulo,
+          data: agrupadas[chave],
+        };
+      });
   };
 
   return (
