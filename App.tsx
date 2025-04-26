@@ -261,7 +261,7 @@ export default function App() {
                   onChangeText={(text) => setData(text)}
                   style={styles.input}
                   keyboardType="default"
-                  right={<TextInput.Icon icon="calendar" />}
+                  right={<TextInput.Icon icon={() => <Text>📅</Text>} />}
                 />
               ) : (
                 <>
@@ -290,6 +290,10 @@ export default function App() {
 
               <Button mode="contained" onPress={adicionarDespesa} style={styles.botao}>
                 Adicionar
+              </Button>
+
+              <Button mode='outlined' onPress={() => setModalFormVisivel(false)} style={{ marginTop: 8 }}>
+                Cancelar 
               </Button>
             </View>
           </View>
@@ -479,5 +483,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-
+  
 });
