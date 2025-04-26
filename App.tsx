@@ -270,10 +270,13 @@ export default function App() {
                     onChange={(date) => {
                       if (date) {
                         setData(date.toISOString().split('T')[0]);
-                        setMostrarPicker(false); // Fecha o calendário automaticamente depois de escolher
+                        setMostrarPicker(false); // Fechar o calendário
                       }
                     }}
+                    dateFormat="yyyy-MM-dd"
+                    placeholderText='Selecione uma data'
                     inline
+                    maxDate={new Date()}
                   />
                   </View>
                 )}
