@@ -256,43 +256,28 @@ export default function App() {
                 </Text>
               </Pressable>
 
-              {Platform.OS === 'web' ? (
-                <View style={styles.input}>
-                <DatePicker
-                  selected={new Date(data)}
-                  onChange={(date) => {
-                    if (date) {
-                      setData(date.toISOString().split('T')[0]);
-                    }
-                  }}
-                  dateFormat="yyyy-MM-dd"
-                  placeholderText="Escolhe uma data"
-                />
-              </View>
-              ) : (
-                <>
-                  <Pressable style={styles.input} onPress={() => setMostrarPicker(true)}>
-                    <Text style={styles.dropdownText}>
-                      📅 {data}
-                    </Text>
-                  </Pressable>
+              <View style={{ width: '100%', marginBottom: 12 }}>
+                <Pressable style={styles.input} onPress={() => setMostrarPicker(true)}>
+                  <Text style={styles.dropdownText}>
+                    📅 {data}
+                  </Text>
+                </Pressable>
 
-                  {mostrarPicker && (
-                    <DateTimePicker
-                      value={new Date(data)}
-                      mode="date"
-                      display="default"
-                      onChange={(event, selectedDate) => {
-                        setMostrarPicker(false);
-                        if (selectedDate) {
-                          const dataFormatada = selectedDate.toISOString().split('T')[0];
-                          setData(dataFormatada);
-                        }
-                      }}
-                    />
-                  )}
-                </>
-              )}
+                {mostrarPicker && Platform.OS === 'web' && (
+                  <View style={{ alignItems: 'center', width: '100%', marginTop: 8 }}>
+                  <DatePicker
+                    selected={new Date(data)}
+                    onChange={(date) => {
+                      if (date) {
+                        setData(date.toISOString().split('T')[0]);
+                        setMostrarPicker(false); // Fecha o calendário automaticamente depois de escolher
+                      }
+                    }}
+                    inline
+                  />
+                  </View>
+                )}
+              </View>
 
               <Button mode="contained" onPress={adicionarDespesa} style={styles.botao}>
                 Adicionar
@@ -360,8 +345,9 @@ const styles = StyleSheet.create({
   input: {
     marginBottom: 12,
     backgroundColor: '#ede7f6',
-    padding: 12,
-    borderRadius: 6,
+    padding: 14,
+    borderRadius: 8,
+    justifyContent: 'center',
   },
   dropdownText: {
     fontSize: 16,
