@@ -20,6 +20,8 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const theme = {
   ...DefaultTheme,
@@ -255,14 +257,18 @@ export default function App() {
               </Pressable>
 
               {Platform.OS === 'web' ? (
-                <TextInput
-                  label="Data"
-                  value={data}
-                  onChangeText={(text) => setData(text)}
-                  style={styles.input}
-                  keyboardType="default"
-                  right={<TextInput.Icon icon={() => <Text>📅</Text>} />}
+                <View style={styles.input}>
+                <DatePicker
+                  selected={new Date(data)}
+                  onChange={(date) => {
+                    if (date) {
+                      setData(date.toISOString().split('T')[0]);
+                    }
+                  }}
+                  dateFormat="yyyy-MM-dd"
+                  placeholderText="Escolhe uma data"
                 />
+              </View>
               ) : (
                 <>
                   <Pressable style={styles.input} onPress={() => setMostrarPicker(true)}>
