@@ -62,11 +62,22 @@ export default function App() {
   const valorInputRef = useRef<any>(null);
   const [data, setData] = useState(new Date().toISOString().split('T')[0]);
   const [mostrarPicker, setMostrarPicker] = useState(false);
+  const [modalFormVisivel, setModalFormVisivel] = useState(false);
 
-  const total = despesas.reduce((soma, despesa) => {
-    const valorNumerico = parseFloat(despesa.valor.replace(',', '.'));
-    return soma + (isNaN(valorNumerico) ? 0 : valorNumerico);
-  }, 0);
+  const calcularTotalMesAtual = () => {
+    const hoje = new Date();
+    const mesAtual = hoje.getMonth();
+    const anoAtual = hoje.getFullYear();
+
+    return despesas.reduce((soma, despesa) => {
+      const dataDespesa = new Date(despesa.data);
+      if (dataDespesa.getMonth() === mesAtual && dataDespesa.getFullYear() === anoAtual) {
+        const valorNumerico = parseFloat(despesa.valor.replace(',', '.'));
+        return soma + (isNaN(valorNumerico) ? 0 : valorNumerico);
+      }
+      return soma;
+    }, 0);
+  };
 
   const adicionarDespesa = () => {
     if (nome && valor && categoria) {
@@ -84,6 +95,7 @@ export default function App() {
       setNome('');
       setValor('');
       setCategoria('');
+      setModalFormVisivel(false);
     }
   };
 
@@ -164,101 +176,7 @@ export default function App() {
     <PaperProvider theme={theme}>
       <View style={styles.container}>
         <Text style={styles.titulo}>Gestor de Despesas</Text>
-        <Text style={styles.total}>Total: {total.toFixed(2)} €</Text>
-
-        <TextInput
-          label="Despesa"
-          value={nome}
-          onChangeText={setNome}
-          style={styles.input}
-          returnKeyType="next"
-          onSubmitEditing={() => valorInputRef.current?.focus()}
-        />
-
-        <TextInput
-          label="Valor (€)"
-          value={valor}
-          onChangeText={(text) => {
-            const valorFiltrado = text.replace(/[^0-9.,]/g, '');
-            setValor(valorFiltrado);
-          }}
-          keyboardType="decimal-pad"
-          style={styles.input}
-          ref={valorInputRef}
-          returnKeyType="done"
-          onSubmitEditing={adicionarDespesa}
-        />
-
-        <Pressable style={styles.input} onPress={() => setShowDropDown(true)}>
-          <Text style={styles.dropdownText}>
-            {categoria ? `• ${categoria}` : 'Escolhe uma categoria'}
-          </Text>
-        </Pressable>
-
-        {Platform.OS === 'web' ? (
-          <TextInput
-            label="Data"
-            value={data}
-            onChangeText={(text) => setData(text)}
-            style={styles.input}
-            keyboardType="default"
-            right={<TextInput.Icon icon="calendar" />}
-          />
-        ) : (
-          <>
-            <Pressable style={styles.input} onPress={() => setMostrarPicker(true)}>
-              <Text style={styles.dropdownText}>
-                📅 {data}
-              </Text>
-            </Pressable>
-
-            {mostrarPicker && (
-              <DateTimePicker
-                value={new Date(data)}
-                mode="date"
-                display="default"
-                onChange={(event, selectedDate) => {
-                  setMostrarPicker(false);
-                  if (selectedDate) {
-                    const dataFormatada = selectedDate.toISOString().split('T')[0];
-                    setData(dataFormatada);
-                  }
-                }}
-              />
-            )}
-          </>
-        )}
-
-        <Modal visible={showDropDown} transparent animationType="none">
-          <View style={styles.modalOverlay}>
-            <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}> 
-              <Text style={styles.modalTitle}>Escolhe uma categoria</Text>
-              <View style={styles.grid}>
-                {listaCategorias.map((item) => (
-                  <TouchableOpacity
-                    key={item.label}
-                    style={styles.categoriaBotao}
-                    onPress={() => {
-                      setCategoria(item.label);
-                      setShowDropDown(false);
-                    }}
-                  >
-                    <MaterialCommunityIcons name={item.icon as any} size={44} color="#5e35b1" />
-                    <Text style={styles.categoriaTexto}>{item.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <Button onPress={() => setShowDropDown(false)} style={{ marginTop: 16 }}>
-                Cancelar
-              </Button>
-            </Animated.View>
-          </View>
-        </Modal>
-
-        <Button mode="contained" onPress={adicionarDespesa} style={styles.botao}>
-          Adicionar
-        </Button>
-
+        <Text style={styles.total}>Total deste mês: {calcularTotalMesAtual().toFixed(2)} €</Text>
 
         <SectionList
           sections={agruparDespesasPorMes()}
@@ -293,10 +211,119 @@ export default function App() {
             <Text style={styles.separadorMes}>{title.toUpperCase()}</Text>
           )}
         />
+
+        <Pressable style={styles.botaoFlutuante} onPress={() => setModalFormVisivel(true)}>
+          <Text style={styles.botaoFlutuanteTexto}>+</Text>
+        </Pressable>
+
+        <Modal
+          visible={modalFormVisivel}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setModalFormVisivel(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalFormContent}>
+              <TextInput
+                label="Despesa"
+                value={nome}
+                onChangeText={setNome}
+                style={styles.input}
+                returnKeyType="next"
+                onSubmitEditing={() => valorInputRef.current?.focus()}
+              />
+
+              <TextInput
+                label="Valor (€)"
+                value={valor}
+                onChangeText={(text) => {
+                  const valorFiltrado = text.replace(/[^0-9.,]/g, '');
+                  setValor(valorFiltrado);
+                }}
+                keyboardType="decimal-pad"
+                style={styles.input}
+                ref={valorInputRef}
+                returnKeyType="done"
+                onSubmitEditing={adicionarDespesa}
+              />
+
+              <Pressable style={styles.input} onPress={() => setShowDropDown(true)}>
+                <Text style={styles.dropdownText}>
+                  {categoria ? `• ${categoria}` : 'Escolhe uma categoria'}
+                </Text>
+              </Pressable>
+
+              {Platform.OS === 'web' ? (
+                <TextInput
+                  label="Data"
+                  value={data}
+                  onChangeText={(text) => setData(text)}
+                  style={styles.input}
+                  keyboardType="default"
+                  right={<TextInput.Icon icon="calendar" />}
+                />
+              ) : (
+                <>
+                  <Pressable style={styles.input} onPress={() => setMostrarPicker(true)}>
+                    <Text style={styles.dropdownText}>
+                      📅 {data}
+                    </Text>
+                  </Pressable>
+
+                  {mostrarPicker && (
+                    <DateTimePicker
+                      value={new Date(data)}
+                      mode="date"
+                      display="default"
+                      onChange={(event, selectedDate) => {
+                        setMostrarPicker(false);
+                        if (selectedDate) {
+                          const dataFormatada = selectedDate.toISOString().split('T')[0];
+                          setData(dataFormatada);
+                        }
+                      }}
+                    />
+                  )}
+                </>
+              )}
+
+              <Button mode="contained" onPress={adicionarDespesa} style={styles.botao}>
+                Adicionar
+              </Button>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal visible={showDropDown} transparent animationType="none">
+          <View style={styles.modalOverlay}>
+            <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}> 
+              <Text style={styles.modalTitle}>Escolhe uma categoria</Text>
+              <View style={styles.grid}>
+                {listaCategorias.map((item) => (
+                  <TouchableOpacity
+                    key={item.label}
+                    style={styles.categoriaBotao}
+                    onPress={() => {
+                      setCategoria(item.label);
+                      setShowDropDown(false);
+                    }}
+                  >
+                    <MaterialCommunityIcons name={item.icon as any} size={44} color="#5e35b1" />
+                    <Text style={styles.categoriaTexto}>{item.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <Button onPress={() => setShowDropDown(false)} style={{ marginTop: 16 }}>
+                Cancelar
+              </Button>
+            </Animated.View>
+          </View>
+        </Modal>
       </View>
     </PaperProvider>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -414,4 +441,42 @@ const styles = StyleSheet.create({
     padding: 8,
     textAlign: 'center',
   },
+
+  botaoFlutuante: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    backgroundColor: '#5e35b1',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5,
+  },
+
+  botaoFlutuanteTexto: {
+    color: '#fff',
+    fontSize: 30,
+    lineHeight: 32,
+    fontWeight: 'bold',
+  },
+
+  modalFormContent: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    width: '90%',
+    maxWidth: 400,
+    alignSelf: 'center',
+    elevation: 5,
+  },
+
+  modalFormOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
 });
