@@ -10,21 +10,21 @@
 - [x] Modal de formulário organizado
 
 ##    Próximos Passos (Desenvolvimento Estrutural)
-- [ ] Criar Menu Lateral (Drawer Navigation)
+- [x] Criar Menu Lateral (Drawer Navigation)
 - [ ] Criar página **Planeador de Pagamentos**
-- [ ] Criar página **Estatísticas** (gráficos)
+- [x] Criar página **Estatísticas** (gráficos)
 - [ ] Criar página **Definições** (tema, língua, moeda)
 
 ##    Melhorias de Experiência
 - [ ] Melhorar estilo visual do DatePicker para Web
-- [ ] Limitar visualmente o calendário para não ultrapassar o Modal
+- [x] Limitar visualmente o calendário para não ultrapassar o Modal
 - [ ] Aplicar **Modo Escuro/Claro** (toggle dentro de Definições)
 - [ ] Permitir **Escolher Moeda** nas Definições
 - [ ] Detetar e alterar **Idioma da App** (automático e manual)
 
 ##    Estatísticas
-- [ ] Gráfico de Barras - Gastos por Dia (Mês Atual)
-- [ ] Gráfico de Pizza - Gastos por Categoria
+- [x] Gráfico de Barras - Gastos por Dia (Mês Atual)
+- [x] Gráfico de Pizza - Gastos por Categoria
 - [ ] Gráfico de Linha - Evolução dos Gastos no Mês (opcional)
 
 ##    Funcionalidades Avançadas (Futuro)
