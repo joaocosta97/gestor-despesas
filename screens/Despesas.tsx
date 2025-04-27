@@ -51,6 +51,16 @@ export default function Despesas() {
   const [data, setData] = useState(new Date().toISOString().split('T')[0]);
   const [mostrarPicker, setMostrarPicker] = useState(false);
   const [modalFormVisivel, setModalFormVisivel] = useState(false);
+  const [mesesAbertos, setMesesAbertos] = useState<string[]>([]);
+
+
+  const toggleMesAberto = (mesAno: string) => {
+    if (mesesAbertos.includes(mesAno)) {
+      setMesesAbertos(mesesAbertos.filter((m) => m !== mesAno));
+    } else {
+      setMesesAbertos([...mesesAbertos, mesAno]);
+    }
+  };  
 
   const calcularTotalMesAtual = () => {
     const hoje = new Date();
@@ -117,6 +127,13 @@ export default function Despesas() {
   }, []);
 
   useEffect(() => {
+    const hoje = new Date();
+    const tituloAtual = hoje.toLocaleString('default', { month: 'long', year: 'numeric' });
+    setMesesAbertos([tituloAtual]);
+  }, [despesas]);
+
+
+  useEffect(() => {
     if (showDropDown) {
       Animated.timing(fadeAnim, {
         toValue: 1,
@@ -167,7 +184,10 @@ export default function Despesas() {
       <Text style={styles.total}>Total deste mês: {calcularTotalMesAtual().toFixed(2)} €</Text>
 
       <SectionList
-        sections={agruparDespesasPorMes()}
+        sections={agruparDespesasPorMes().map((section) => ({
+          ...section,
+          data: mesesAbertos.includes(section.title) ? section.data : [],
+        }))}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => {
           const categoriaInfo = listaCategorias.find((cat) => cat.label === item.categoria);
@@ -195,9 +215,26 @@ export default function Despesas() {
             </Card>
           );
         }}
-        renderSectionHeader={({ section: { title } }) => (
-          <Text style={styles.separadorMes}>{title.toUpperCase()}</Text>
-        )}
+        renderSectionHeader={({ section: { title } }) => {
+          const aberto = mesesAbertos.includes(title);
+        
+          return (
+            <Pressable onPress={() => toggleMesAberto(title)}>
+              <View style={styles.headerMes}>
+                <Text style={styles.separadorMes}>
+                  {title.toUpperCase()}
+                </Text>
+                <MaterialCommunityIcons
+                  name={aberto ? 'chevron-up' : 'chevron-down'}
+                  size={24}
+                  color="#5e35b1"
+                  style={{ marginLeft: 8 }}
+                />
+              </View>
+            </Pressable>
+          );
+        }}
+        
       />
 
       <Pressable style={styles.botaoFlutuante} onPress={() => setModalFormVisivel(true)}>
@@ -436,14 +473,7 @@ const styles = StyleSheet.create({
       color: '#5e35b1',
       textAlign: 'center',
     },
-    separadorMes: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: '#5e35b1',
-      backgroundColor: '#ede7f6',
-      padding: 8,
-      textAlign: 'center',
-    },
+    
     botaoFlutuante: {
       position: 'absolute',
       bottom: 30,
@@ -471,5 +501,32 @@ const styles = StyleSheet.create({
       alignSelf: 'center',
       elevation: 5,
     },
+
+    separadorMes: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: '#5e35b1',
+      backgroundColor: '#ede7f6',
+      padding: 12,
+      textAlign: 'center',
+      borderRadius: 8,
+      marginBottom: 8,
+    },
+    
+    headerMes: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: '#ede7f6',
+      padding: 12,
+      borderRadius: 8,
+      marginBottom: 8,
+    },
+    
+    setaMes: {
+      fontSize: 20,
+      marginLeft: 8,
+    },
+    
   });
   
