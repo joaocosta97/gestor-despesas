@@ -162,7 +162,7 @@ export default function Despesas() {
       if (!agrupadas[chave]) {
         agrupadas[chave] = [];
       }
-      agrupadas[chave].push(despesa);
+      agrupadas[chave].unshift(despesa);
     });
 
     return Object.keys(agrupadas)
