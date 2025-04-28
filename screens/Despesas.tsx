@@ -1,20 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
-  StyleSheet,
   SectionList,
   Modal,
   Pressable,
   Animated,
   TouchableOpacity,
   Platform,
+  StyleSheet,
 } from 'react-native';
-import {
-  Text,
-  TextInput,
-  Button,
-  Card,
-} from 'react-native-paper';
+import { Text, TextInput, Button, Card, useTheme } from 'react-native-paper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -41,6 +36,7 @@ const listaCategorias = [
 ];
 
 export default function Despesas() {
+  const theme = useTheme();
   const [nome, setNome] = useState('');
   const [valor, setValor] = useState('');
   const [categoria, setCategoria] = useState('');
@@ -53,14 +49,13 @@ export default function Despesas() {
   const [modalFormVisivel, setModalFormVisivel] = useState(false);
   const [mesesAbertos, setMesesAbertos] = useState<string[]>([]);
 
-
   const toggleMesAberto = (mesAno: string) => {
     if (mesesAbertos.includes(mesAno)) {
       setMesesAbertos(mesesAbertos.filter((m) => m !== mesAno));
     } else {
       setMesesAbertos([...mesesAbertos, mesAno]);
     }
-  };  
+  };
 
   const calcularTotalMesAtual = () => {
     const hoje = new Date();
@@ -132,7 +127,6 @@ export default function Despesas() {
     setMesesAbertos([tituloAtual]);
   }, [despesas]);
 
-
   useEffect(() => {
     if (showDropDown) {
       Animated.timing(fadeAnim, {
@@ -179,9 +173,11 @@ export default function Despesas() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Gestor de Despesas</Text>
-      <Text style={styles.total}>Total deste mês: {calcularTotalMesAtual().toFixed(2)} €</Text>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Text style={[styles.titulo, { color: theme.colors.primary }]}>Gestor de Despesas</Text>
+      <Text style={[styles.total, { color: theme.colors.onBackground }]}>
+        Total deste mês: {calcularTotalMesAtual().toFixed(2)} €
+      </Text>
 
       <SectionList
         sections={agruparDespesasPorMes().map((section) => ({
@@ -192,7 +188,7 @@ export default function Despesas() {
         renderItem={({ item }) => {
           const categoriaInfo = listaCategorias.find((cat) => cat.label === item.categoria);
           return (
-            <Card style={styles.card}>
+            <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
               <Card.Content style={styles.cardContent}>
                 <View style={styles.cardLeft}>
                   <View style={styles.iconLabel}>
@@ -200,13 +196,13 @@ export default function Despesas() {
                       <MaterialCommunityIcons
                         name={categoriaInfo.icon as any}
                         size={22}
-                        color="#5e35b1"
+                        color={theme.colors.primary}
                         style={{ marginRight: 8 }}
                       />
                     )}
-                    <Text style={styles.itemNome}>{item.nome}</Text>
+                    <Text style={[styles.itemNome, { color: theme.colors.onSurface }]}>{item.nome}</Text>
                   </View>
-                  <Text style={styles.itemValor}>{item.valor} €</Text>
+                  <Text style={[styles.itemValor, { color: theme.colors.onSurface }]}>{item.valor} €</Text>
                 </View>
                 <Button onPress={() => removerDespesa(item.id)} compact>
                   🗑️
@@ -217,30 +213,29 @@ export default function Despesas() {
         }}
         renderSectionHeader={({ section: { title } }) => {
           const aberto = mesesAbertos.includes(title);
-        
+
           return (
             <Pressable onPress={() => toggleMesAberto(title)}>
               <View style={styles.headerMes}>
-                <Text style={styles.separadorMes}>
-                  {title.toUpperCase()}
-                </Text>
+                <Text style={styles.separadorMes}>{title.toUpperCase()}</Text>
                 <MaterialCommunityIcons
                   name={aberto ? 'chevron-up' : 'chevron-down'}
                   size={24}
-                  color="#5e35b1"
+                  color={theme.colors.primary}
                   style={{ marginLeft: 8 }}
                 />
               </View>
             </Pressable>
           );
         }}
-        
       />
 
+      {/* Botão Flutuante */}
       <Pressable style={styles.botaoFlutuante} onPress={() => setModalFormVisivel(true)}>
         <Text style={styles.botaoFlutuanteTexto}>+</Text>
       </Pressable>
 
+      {/* Modal Formulário */}
       <Modal
         visible={modalFormVisivel}
         transparent
@@ -248,7 +243,7 @@ export default function Despesas() {
         onRequestClose={() => setModalFormVisivel(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalFormContent}>
+          <View style={[styles.modalFormContent, { backgroundColor: theme.colors.surface }]}>
             <TextInput
               label="Despesa"
               value={nome}
@@ -256,36 +251,39 @@ export default function Despesas() {
               style={styles.input}
               returnKeyType="next"
               onSubmitEditing={() => valorInputRef.current?.focus()}
+              mode="outlined"
+              outlineColor={theme.colors.primary}
+              activeOutlineColor={theme.colors.primary}
+              textColor={theme.colors.onSurface}
             />
 
             <TextInput
               label="Valor (€)"
               value={valor}
-              onChangeText={(text) => {
-                const valorFiltrado = text.replace(/[^0-9.,]/g, '');
-                setValor(valorFiltrado);
-              }}
+              onChangeText={(text) => setValor(text.replace(/[^0-9.,]/g, ''))}
               keyboardType="decimal-pad"
               style={styles.input}
               ref={valorInputRef}
               returnKeyType="done"
               onSubmitEditing={adicionarDespesa}
+              mode="outlined"
+              outlineColor={theme.colors.primary}
+              activeOutlineColor={theme.colors.primary}
+              textColor={theme.colors.onSurface}
             />
 
-            <Pressable style={styles.input} onPress={() => setShowDropDown(true)}>
-              <Text style={styles.dropdownText}>
+            <Pressable style={styles.pressableCampo} onPress={() => setShowDropDown(true)}>
+              <Text style={styles.pressableTexto}>
                 {categoria ? `• ${categoria}` : 'Escolhe uma categoria'}
               </Text>
             </Pressable>
 
+            {/* Calendário */}
             {Platform.OS === 'web' ? (
               <View style={{ width: '100%', marginBottom: 12, alignItems: 'center' }}>
-                <Pressable style={styles.input} onPress={() => setMostrarPicker(true)}>
-                  <Text style={styles.dropdownText}>
-                    📅 {data}
-                  </Text>
+                <Pressable style={styles.pressableCampo} onPress={() => setMostrarPicker(true)}>
+                  <Text style={styles.pressableTexto}>📅 {data}</Text>
                 </Pressable>
-
                 {mostrarPicker && (
                   <DatePicker
                     selected={new Date(data)}
@@ -303,12 +301,9 @@ export default function Despesas() {
               </View>
             ) : (
               <>
-                <Pressable style={styles.input} onPress={() => setMostrarPicker(true)}>
-                  <Text style={styles.dropdownText}>
-                    📅 {data}
-                  </Text>
+                <Pressable style={styles.pressableCampo} onPress={() => setMostrarPicker(true)}>
+                  <Text style={styles.pressableTexto}>📅 {data}</Text>
                 </Pressable>
-
                 {mostrarPicker && (
                   <DateTimePicker
                     value={new Date(data)}
@@ -317,8 +312,7 @@ export default function Despesas() {
                     onChange={(event, selectedDate) => {
                       setMostrarPicker(false);
                       if (selectedDate) {
-                        const dataFormatada = selectedDate.toISOString().split('T')[0];
-                        setData(dataFormatada);
+                        setData(selectedDate.toISOString().split('T')[0]);
                       }
                     }}
                   />
@@ -329,7 +323,6 @@ export default function Despesas() {
             <Button mode="contained" onPress={adicionarDespesa} style={styles.botao}>
               Adicionar
             </Button>
-
             <Button mode="outlined" onPress={() => setModalFormVisivel(false)} style={{ marginTop: 8 }}>
               Cancelar
             </Button>
@@ -337,10 +330,11 @@ export default function Despesas() {
         </View>
       </Modal>
 
+      {/* Modal Categorias */}
       <Modal visible={showDropDown} transparent animationType="none">
         <View style={styles.modalOverlay}>
-          <Animated.View style={[styles.modalContent, { opacity: fadeAnim }]}>
-            <Text style={styles.modalTitle}>Escolhe uma categoria</Text>
+          <Animated.View style={[styles.modalContent, { opacity: fadeAnim, backgroundColor: theme.colors.surface }]}>
+            <Text style={[styles.modalTitle, { color: theme.colors.primary }]}>Escolhe uma categoria</Text>
             <View style={styles.grid}>
               {listaCategorias.map((item) => (
                 <TouchableOpacity
@@ -351,8 +345,10 @@ export default function Despesas() {
                     setShowDropDown(false);
                   }}
                 >
-                  <MaterialCommunityIcons name={item.icon as any} size={44} color="#5e35b1" />
-                  <Text style={styles.categoriaTexto}>{item.label}</Text>
+                  <MaterialCommunityIcons name={item.icon as any} size={44} color={theme.colors.primary} />
+                  <Text style={{ color: theme.colors.onSurface, marginTop: 6, fontSize: 14, textAlign: 'center' }}>
+                    {item.label}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -366,167 +362,173 @@ export default function Despesas() {
   );
 }
 
-const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      padding: 16,
-      paddingTop: 50,
-      backgroundColor: '#fff',
-    },
-    titulo: {
-      fontSize: 30,
-      marginBottom: 8,
-      marginTop: 12,
-      textAlign: 'center',
-      fontWeight: 'bold',
-      color: '#5e35b1',
-    },
-    total: {
-      fontSize: 18,
-      marginBottom: 16,
-      textAlign: 'center',
-      color: '#555',
-    },
-    input: {
-      marginBottom: 12,
-      backgroundColor: '#ede7f6',
-      padding: 12,
-      borderRadius: 6,
-    },
-    dropdownText: {
-      fontSize: 16,
-      color: '#333',
-    },
-    botao: {
-      marginBottom: 24,
-      backgroundColor: '#5e35b1',
-    },
-    card: {
-      marginBottom: 12,
-      backgroundColor: '#fff',
-    },
-    cardContent: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    cardLeft: {
-      flexDirection: 'column',
-      flex: 1,
-    },
-    itemNome: {
-      fontSize: 18,
-      color: '#333',
-    },
-    itemValor: {
-      fontSize: 16,
-      color: '#666',
-    },
-    iconLabel: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: 4,
-    },
-    categoria: {
-      fontSize: 12,
-      color: '#777',
-      marginTop: 4,
-    },
-    modalOverlay: {
-      flex: 1,
-      justifyContent: 'center',
-      backgroundColor: 'rgba(0,0,0,0.5)',
-    },
-    modalContent: {
-      backgroundColor: '#fff',
-      margin: 20,
-      borderRadius: 8,
-      padding: 20,
-      alignItems: 'center',
-    },
-    modalTitle: {
-      fontSize: 22,
-      fontWeight: 'bold',
-      marginBottom: 16,
-      textAlign: 'center',
-      color: '#5e35b1',
-    },
-    grid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-      gap: 10,
-    },
-    categoriaBotao: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#ede7f6',
-      padding: 10,
-      borderRadius: 8,
-      margin: 6,
-      width: 100,
-      height: 100,
-    },
-    categoriaTexto: {
-      marginTop: 6,
-      fontSize: 14,
-      color: '#5e35b1',
-      textAlign: 'center',
-    },
-    
-    botaoFlutuante: {
-      position: 'absolute',
-      bottom: 30,
-      right: 30,
-      backgroundColor: '#5e35b1',
-      width: 60,
-      height: 60,
-      borderRadius: 30,
-      alignItems: 'center',
-      justifyContent: 'center',
-      elevation: 5,
-    },
-    botaoFlutuanteTexto: {
-      color: '#fff',
-      fontSize: 30,
-      lineHeight: 32,
-      fontWeight: 'bold',
-    },
-    modalFormContent: {
-      backgroundColor: '#fff',
-      padding: 20,
-      borderRadius: 10,
-      width: '90%',
-      maxWidth: 400,
-      alignSelf: 'center',
-      elevation: 5,
-    },
 
-    separadorMes: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: '#5e35b1',
-      backgroundColor: '#ede7f6',
-      padding: 12,
-      textAlign: 'center',
-      borderRadius: 8,
-      marginBottom: 8,
-    },
-    
-    headerMes: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: '#ede7f6',
-      padding: 12,
-      borderRadius: 8,
-      marginBottom: 8,
-    },
-    
-    setaMes: {
-      fontSize: 20,
-      marginLeft: 8,
-    },
-    
-  });
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 16,
+    paddingTop: 50,
+  },
+  titulo: {
+    fontSize: 30,
+    marginBottom: 8,
+    marginTop: 12,
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
+  total: {
+    fontSize: 18,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  card: {
+    marginBottom: 12,
+    backgroundColor: '#ffffff', // este valor adapta-se pelo theme
+    borderRadius: 16,
+    elevation: 4, // Android: sombra
+    shadowColor: '#000', // iOS/Web: sombra
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  cardContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardLeft: {
+    flexDirection: 'column',
+    flex: 1,
+  },
+  itemNome: {
+    fontSize: 18,
+  },
+  itemValor: {
+    fontSize: 16,
+  },
+  iconLabel: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  headerMes: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  separadorMes: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    padding: 12,
+    textAlign: 'center',
+    borderRadius: 8,
+  },
+  botaoFlutuante: {
+    position: 'absolute',
+    bottom: 30,
+    right: 30,
+    backgroundColor: '#6C63FF', // igual à Primary Color
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+  },
+  botaoFlutuanteTexto: {
+    color: '#fff',
+    fontSize: 34,
+    fontWeight: 'bold',
+  },  
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalFormContent: {
+    backgroundColor: '#ffffff',
+    padding: 24,
+    borderRadius: 20,
+    width: '90%',
+    maxWidth: 400,
+    alignSelf: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  input: {
+    marginBottom: 12,
+    backgroundColor: '#ede7f6',
+    fontSize: 16,
+    borderRadius: 10,
+  },
+  dropdownText: {
+    fontSize: 16,
+  },
+
+  botao: {
+    backgroundColor: '#5e35b1',
+    marginTop: 16,
+  },
   
+  modalContent: {
+    backgroundColor: '#ffffff',
+    margin: 20,
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  categoriaBotao: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ede7f6',
+    padding: 10,
+    borderRadius: 8,
+    margin: 6,
+    width: 100,
+    height: 100,
+  },
+  pressableCampo: {
+    backgroundColor: '#ede7f6',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 6,
+    justifyContent: 'center',
+    marginBottom: 12,
+    height: 56,
+  },
+  
+  pressableTexto: {
+    fontSize: 16,
+    color: '#333',
+  },
+  
+  
+});
+
